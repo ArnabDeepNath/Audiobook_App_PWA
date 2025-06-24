@@ -12,12 +12,12 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="./">
+  <base href="/">
   <script>
     // The value below will be replaced with the value from --base-href
     // If GitHub Pages redirects to 404.html, fix the base path
     if (window.location.pathname.includes('404.html')) {
-      document.write('<base href="./">');
+      document.write('<base href="/audiobook_app/">');
     }
   </script>
 
@@ -106,16 +106,6 @@
       document.getElementById("splash-branding")?.remove();
       document.body.style.background = "transparent";
     }
-    
-    // Ensure app loads even if there are service worker issues
-    window.addEventListener('DOMContentLoaded', function() {
-      setTimeout(function() {
-        if (document.getElementById("splash")) {
-          console.warn('App still loading after timeout, forcing load...');
-          loadMainDartJs();
-        }
-      }, 15000);
-    });
   </script>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
 </head>
@@ -135,7 +125,7 @@
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
   <script>
-    const serviceWorkerVersion = "1379262060";
+    const serviceWorkerVersion = "2039016610";
     var scriptLoaded = false;
     function loadMainDartJs() {
       if (scriptLoaded) {
@@ -191,7 +181,7 @@
             );
             loadMainDartJs();
           }
-        }, 10000);
+        }, 4000);
       });
     } else {
       // Service workers not supported. Just drop the <script> tag.
