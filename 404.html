@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=/">
+  <script>
+    window.location.href = window.location.origin + '/' + 
+      (window.location.pathname.split('/').filter(p => p !== '').slice(1).join('/') || '') + 
+      (window.location.search || '') + 
+      (window.location.hash || '');
+  </script>
+  <title>Page Redirection</title>
+</head>
+<body>
+  If you are not redirected automatically, follow this <a href="/">link</a>.
+</body>
+</html>

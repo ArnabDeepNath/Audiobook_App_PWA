@@ -13,6 +13,13 @@
     the `--base-href` argument provided to `flutter build`.
   -->
   <base href="$FLUTTER_BASE_HREF">
+  <script>
+    // The value below will be replaced with the value from --base-href
+    // If GitHub Pages redirects to 404.html, fix the base path
+    if (window.location.pathname.includes('404.html')) {
+      document.write('<base href="/audiobook_app/">');
+    }
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
