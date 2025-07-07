@@ -12,12 +12,12 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="/Audiobook_App_PWA/">
+  <base href="/">
   <script>
     // The value below will be replaced with the value from --base-href
     // If GitHub Pages redirects to 404.html, fix the base path
     if (window.location.pathname.includes('404.html')) {
-      document.write('<base href="/Audiobook_App_PWA/">');
+      document.write('<base href="/audiobook_app/">');
     }
   </script>
 
@@ -27,7 +27,6 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Grantha Katha">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -37,6 +36,36 @@
 
   <title>Grantha Katha</title>
   <link rel="manifest" href="manifest.json">
+  
+  <!-- PWA compatibility and caching -->
+  <meta name="theme-color" content="#6750A4">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <!-- HLS.js for audio streaming -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  
+  <!-- Custom audio streaming integration -->
+  <script src="audio_stream_integration.js"></script>
+  
+  <!-- Enhanced memory management for large audio files -->
+  <script>
+    // Configure performance for handling large files
+    if ('performance' in window) {
+      performance.setResourceTimingBufferSize(300);
+    }
+    
+    // Configure IndexedDB for large file handling
+    if ('webkitRequestFileSystem' in window) {
+      window.webkitRequestFileSystem(window.TEMPORARY, 1024*1024*100, function() {
+        console.log('Temporary filesystem ready for large file operations');
+      }, function(e) {
+        console.error('Error initializing temporary filesystem', e);
+      });
+    }
+  </script>
+  
   <style id="splash-screen-style">
     html {
       height: 100%
@@ -125,9 +154,8 @@
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
-  <script src="resource_checker.js"></script>
   <script>
-    const serviceWorkerVersion = "2797423916";
+    const serviceWorkerVersion = "3690208598";
     var scriptLoaded = false;
     function loadMainDartJs() {
       if (scriptLoaded) {
@@ -190,4 +218,11 @@
       loadMainDartJs();
     }
   </script>
+  
+  <!-- Hidden audio player element for web streaming -->
+  <audio id="audio-player" style="display: none;"></audio>
+  
+  <!-- File input for audio uploads -->
+  <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+  
 </body></html>

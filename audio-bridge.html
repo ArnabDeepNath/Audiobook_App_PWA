@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Bridge</title>
+    <!-- Load HLS.js for streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Load our audio streaming integration script -->
+    <script src="audio_stream_integration.js"></script>
+    <style>
+        /* Add some basic styles for the hidden UI elements */
+        #progress-container {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-family: sans-serif;
+            z-index: 9999;
+        }
+        #progress-bar {
+            height: 10px;
+            background: #4CAF50;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        #progress-text {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hidden audio player element -->
+    <audio id="audio-player" style="display: none;" controls></audio>
+    
+    <!-- Hidden progress UI (for debugging in browser) -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+        <div id="progress-text">Processing audio: 0%</div>
+    </div>
+    
+    <script>
+        // Initialize audio bridge when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Audio bridge initialized');
+            
+            // Test if HLS.js is available
+            if (window.Hls) {
+                console.log('HLS.js loaded successfully');
+                console.log('HLS.js version:', Hls.version);
+                console.log('HLS.js supported:', Hls.isSupported());
+            } else {
+                console.warn('HLS.js not available - will load dynamically when needed');
+            }
+            
+            // Test if audio element exists
+            const audioElement = document.getElementById('audio-player');
+            if (audioElement) {
+                console.log('Audio element found');
+                console.log('Audio support info:');
+                console.log('- MP3:', audioElement.canPlayType('audio/mpeg') ? 'Yes' : 'No');
+                console.log('- WAV:', audioElement.canPlayType('audio/wav') ? 'Yes' : 'No');
+                console.log('- AAC:', audioElement.canPlayType('audio/aac') ? 'Yes' : 'No');
+                console.log('- HLS:', audioElement.canPlayType('application/vnd.apple.mpegurl') ? 'Yes' : 'No');
+                
+                // Setup audio event listeners for debugging
+                audioElement.addEventListener('play', () => console.log('Audio playback started'));
+                audioElement.addEventListener('pause', () => console.log('Audio playback paused'));
+                audioElement.addEventListener('ended', () => console.log('Audio playback ended'));
+                audioElement.addEventListener('error', (e) => console.error('Audio error:', e));
+            } else {
+                console.error('Audio element not found');
+            }
+            
+            // Test if our API is available
+            if (window.audioStreamAPI) {
+                console.log('Audio stream API available');
+                console.log('Available methods:', Object.keys(window.audioStreamAPI).join(', '));
+            } else {
+                console.error('Audio stream API not available');
+            }
+            
+            // Set up progress tracker for uploads
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('uploadProgress', 0); // Reset progress
+            }
+            
+            // Listen for upload progress for visual feedback
+            if (window.flutter_inappwebview) {
+                const progressContainer = document.getElementById('progress-container');
+                const progressBar = document.getElementById('progress-bar');
+                const progressText = document.getElementById('progress-text');
+                
+                // Listen for progress updates
+                window.addEventListener('audio-upload-progress', function(e) {
+                    const progress = e.detail.progress;
+                    if (progress > 0 && progress < 100) {
+                        progressContainer.style.display = 'block';
+                        progressBar.style.width = progress + '%';
+                        progressText.textContent = 'Processing audio: ' + Math.round(progress) + '%';
+                    } else {
+                        progressContainer.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Check for URL parameter and process it
+            const urlParams = new URLSearchParams(window.location.search);
+            const audioUrl = urlParams.get('url');
+            
+            if (audioUrl) {
+                console.log('Audio URL parameter found:', audioUrl);
+                document.getElementById('progress-container').style.display = 'block';
+                document.getElementById('progress-text').textContent = 'Processing audio URL...';
+                
+                // Process the URL parameter
+                processExternalUrl(audioUrl);
+            }
+        });
+        
+        // Custom event dispatcher for progress updates (can be used for debugging)
+        function updateProgress(progress) {
+            window.dispatchEvent(new CustomEvent('audio-upload-progress', {
+                detail: { progress: progress }
+            }));
+        }
+    </script>
+</body>
+</html>

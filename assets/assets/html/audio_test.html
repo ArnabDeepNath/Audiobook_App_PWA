@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Streaming Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4a148c;
+        }
+        .info-panel {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .audio-controls {
+            margin: 20px 0;
+        }
+        audio {
+            width: 100%;
+        }
+        .progress-container {
+            margin: 15px 0;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 10px;
+        }
+        #progress {
+            height: 10px;
+            background-color: #4a148c;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Streaming Test</h1>
+        
+        <div class="info-panel">
+            <p id="audioSource">Testing URL: None</p>
+        </div>
+        
+        <div class="progress-container">
+            <div id="progress"></div>
+        </div>
+        
+        <div class="audio-controls">
+            <audio id="player" controls></audio>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://audiostream.backendservices.in';
+        const progressBar = document.getElementById('progress');
+        const player = document.getElementById('player');
+        const statusDiv = document.getElementById('status');
+        const STORAGE_KEY = 'lastAudioUrl';
+
+        function testAudioStream(audioUrl) {
+            statusDiv.textContent = 'Testing audio URL directly...';
+            statusDiv.className = 'status';
+            
+            // First try playing the URL directly
+            player.src = audioUrl;
+            player.addEventListener('loadedmetadata', function() {
+                player.play();
+                showSuccess('Playing audio directly!');
+                progressBar.style.width = '100%';
+            });
+            
+            player.addEventListener('error', function() {
+                // If direct playback fails, try the streaming service
+                statusDiv.textContent = 'Direct playback failed. Trying streaming service...';
+                sendAudioUrlToService(audioUrl);
+            });
+        }
+
+        function sendAudioUrlToService(audioUrl) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', baseUrl + '/process-external');
+            
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('api-key', 'GK_DdKoT6EJPozXRpjh6avwKmQSpwIoqsuY');
+            
+            xhr.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBar.style.width = `${percentComplete}%`;
+                }
+            };
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    progressBar.style.width = '100%';
+                    const json = JSON.parse(xhr.responseText);
+                    console.log('Server Response:', json);
+                    
+                    if (json.audiopath) {
+                        const streamUrl = baseUrl + json.audiopath;
+                        localStorage.setItem(STORAGE_KEY, streamUrl);
+                        waitUntilReady(streamUrl);
+                    } else {
+                        showError('Unexpected server response.');
+                    }
+                } else {
+                    showError('Processing failed with status: ' + xhr.status);
+                }
+            };
+            
+            xhr.onerror = function() {
+                showError('Network error occurred while processing the audio.');
+            };
+            
+            const data = JSON.stringify({
+                url: audioUrl
+            });
+            
+            xhr.send(data);
+        }
+
+        async function waitUntilReady(url) {
+            statusDiv.textContent = 'Waiting for audio to be ready...';
+            
+            const maxAttempts = 6; // 30 seconds if checked every 5s
+            let attempts = 0;
+            
+            const checkReady = async () => {
+                try {
+                    statusDiv.textContent = `Checking availability (attempt ${attempts + 1}/${maxAttempts})...`;
+                    const res = await fetch(url, { method: 'HEAD' });
+                    
+                    if (res.ok) {
+                        playAudio(url);
+                        showSuccess('Audio ready to play!');
+                    } else {
+                        throw new Error('Not ready');
+                    }
+                } catch (error) {
+                    if (++attempts < maxAttempts) {
+                        statusDiv.textContent = `Retrying in 5 seconds (attempt ${attempts}/${maxAttempts})...`;
+                        setTimeout(checkReady, 5000);
+                    } else {
+                        showError('Audio not available after multiple attempts. The service may be busy or the URL is invalid.');
+                    }
+                }
+            };
+            
+            checkReady();
+        }
+
+        function playAudio(streamUrl) {
+            player.src = streamUrl;
+            player.addEventListener('loadedmetadata', function() {
+                player.play();
+            });
+        }
+
+        function showSuccess(message) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status success';
+        }
+
+        function showError(message) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status error';
+        }
+
+        // Load last audio if exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const lastUrl = localStorage.getItem(STORAGE_KEY);
+            if (lastUrl) {
+                player.src = lastUrl;
+            }
+        });
+    </script>
+</body>
+</html>

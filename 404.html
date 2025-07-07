@@ -2,17 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0;url=/">  <script>
-    var segmentCount = 0;
-    var repoName = "Audiobook_App_PWA";
-    var l = window.location;
-    var basePath = l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/';
-    
-    // Redirect to the correct path in GitHub Pages
-    window.location.href = l.protocol + '//' + l.hostname + 
-      (l.port ? ':' + l.port : '') + '/' + repoName + '/' +
-      l.pathname.slice(basePath.length) + 
-      (l.search || '') + (l.hash || '');
+  <meta http-equiv="refresh" content="0;url=/">
+  <script>
+    window.location.href = window.location.origin + '/' + 
+      (window.location.pathname.split('/').filter(p => p !== '').slice(1).join('/') || '') + 
+      (window.location.search || '') + 
+      (window.location.hash || '');
   </script>
   <title>Page Redirection</title>
 </head>
